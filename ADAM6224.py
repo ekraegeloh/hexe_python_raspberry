@@ -5,13 +5,17 @@
 
 import time
 import socket
+from socketclass import *
 
 global descriptor_ao
 descriptor_ao = ["hv_control_1", "hv_control_2", "heater_flow", "heater_power"]
 
-class adam_setter:
-	global adam_ao_tcp
-	adam_ao_tcp=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+class adam_setter(SocketObj):
+	def __init__(self):
+		self.status = False
+
+	def connect(self, ip, port):
+		SocketObj.__init__(self, "ADAM6224", ip, port, "udp", "\r", self.status)
 
 	#0148=0-10V range
 	setrange0="#01BE000148\r"
@@ -19,38 +23,16 @@ class adam_setter:
 	setrange2="#01BE020148\r"
 	setrange3="#01BE030148\r"
 
-	def connect(self, ip, port):
-		try:
-			adam_ao_tcp.connect((ip, port))
-			print "Connected to ADAM6224"
-			return True
-		except Exception, e:
-			print "Connection to ADAM6224 not possible, reason: %s" % e
-			time.sleep(2)
-			return False
-
-	def disconnect(self):
-		adam_ao_tcp.close()
-		print 'Connection to ADAM6224 closed.'
-
 	def set_ranges(self):
-		adam_ao_tcp.send("#01BE000148\r")
-		adam_ao_tcp.recv(1024)
-		adam_ao_tcp.send("#01BE010148\r")
-		adam_ao_tcp.recv(1024)
-		adam_ao_tcp.send("#01BE020148\r")
-		adam_ao_tcp.recv(1024)
-		adam_ao_tcp.send("#01BE030148\r")
-		adam_ao_tcp.recv(1024)
+		SocketObj.cmd_and_return("#01BE000148\r", True, "!01")
+		SocketObj.cmd_and_return("#01BE010148\r", True, "!01")
+		SocketObj.cmd_and_return("#01BE020148\r", True, "!01")
+		SocketObj.cmd_and_return("#01BE030148\r", True, "!01")
 
 	def read_ao(self, channel):
-			adam_ao_tcp.send("$01BC0" + str(channel) + "\r")
-			response = adam_ao_tcp.recv(1024)
-			if response == "?01\r": raise Exception("Unknown command")
-			else:
-				response = response.split("!01")[1]
-				response = response.split("\r")[0]
-				return response
+			cmd = "$01BC0" + str(channel) + "\r"
+			resp = SocketObj.cmd_and_return(cmd, False, "!01")
+			return resp
 
 	def write_ao(self, channel, ao_value):
 		hex_no = hex(int(ao_value*4095/10))
@@ -58,24 +40,17 @@ class adam_setter:
 		if len(hex_str) == 0: hex_str = "000"
 		if len(hex_str) == 1: hex_str = "00" + hex_str
 		if len(hex_str) == 2: hex_str = "0" + hex_str
-		adam_ao_tcp.send("#01BC0" + str(channel) + "0" + hex_str + "\r")
-		resp = adam_ao_tcp.recv(1024)
-		if resp == "!01\r": return True
-		if resp == "?01\r": raise Exception("Unknown command")
-		else: raise Exception("Couldn't set voltage!")
+		cmd = "#01BC0" + str(channel) + "0" + hex_str + "\r"
+		resp = SocketObj.cmd_and_return(cmd, True, "!01")
+		return True
 
 	def zero_all_ao(self):
 		for i in range(4):
 			zero_str = "#01BC0" + str(i) + "0000\r"
-			adam_ao_tcp.send(zero_str)
-			resp = adam_ao_tcp.recv(1024)
+			resp = SocketObj.cmd_and_return(zero_str, True, "!01")
 			#print resp
-			if resp == "?01\r": raise Exception("Unknown command")
-			if resp != "!01\r": raise Exception("Couldn't set to zero!")
-			time.sleep(0.1)
-		adam_ao_tcp.send("#01BC0200CC\r")
-		adam_ao_tcp.recv(1024)
-		return
+		SocketObj.cmd_and_return("#01BC0200CC\r", True, "!01")
+		return True
 
 
 def check_aorange(value):
@@ -127,7 +102,8 @@ def set_heater_flow(adamAO, value):
 def read_aos(adamAO):
 	ao = {}
 	for i in range(4):
-		response = adamAO.read_ao(i)
+		try:
+			response = adamAO.read_ao(i)
 		if response:
 			ao[descriptor_ao[i]]=int(response, 16)*10.0/4095
 	return ao
