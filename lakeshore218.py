@@ -5,7 +5,6 @@ Created on Mon Mar 02 11:16:33 2015
 @author: Benedikt Krammer
 """
 
-import time
 import socket
 import cloudant
 from socketclass import *

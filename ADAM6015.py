@@ -5,7 +5,6 @@ Created on Wed Feb 25 15:51:32 2015
 @author: Florian Kuchler
 """
 
-import time
 import socket
 import cloudant
 import select

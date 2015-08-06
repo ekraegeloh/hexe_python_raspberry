@@ -4,7 +4,6 @@
 """
 
 import telnetlib
-import time
 import signal
 import cloudant
 #from pprint import pprint as pp

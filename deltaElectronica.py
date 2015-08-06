@@ -3,7 +3,6 @@
 @author: Florian Kuchler
 """
 
-import time
 import socket
 import cloudant
 import signal

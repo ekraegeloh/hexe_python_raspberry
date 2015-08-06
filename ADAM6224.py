@@ -3,7 +3,6 @@
 @author: Eva Kraegeloh
 """
 
-import time
 import socket
 from socketclass import *
 
