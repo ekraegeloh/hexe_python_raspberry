@@ -1,20 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Eva Kraegeloh
-"""
-
 import socket
-from socketclass import *
+import socketclass
 
 global descriptor_ao
 descriptor_ao = ["hv_control_1", "hv_control_2", "heater_flow", "heater_power"]
 
-class adam_setter(SocketObj):
-	def __init__(self):
-		self.status = False
-
-	def connect(self, ip, port):
-		SocketObj.__init__(self, "ADAM6224", ip, port, "udp", "\r", self.status)
+class adam_setter(socketclass.SocketObj):
+	def __init__(self, ip, port):
+		socketclass.SocketObj.__init__(self, "ADAM6224", ip, port, "udp", "\r")
 
 	#0148=0-10V range
 	setrange0="#01BE000148\r"
@@ -23,15 +15,15 @@ class adam_setter(SocketObj):
 	setrange3="#01BE030148\r"
 
 	def set_ranges(self):
-		SocketObj.cmd_and_return("#01BE000148\r", True, "!01")
-		SocketObj.cmd_and_return("#01BE010148\r", True, "!01")
-		SocketObj.cmd_and_return("#01BE020148\r", True, "!01")
-		SocketObj.cmd_and_return("#01BE030148\r", True, "!01")
+		self.cmd_and_return("#01BE000148\r", True, "!01")
+		self.cmd_and_return("#01BE010148\r", True, "!01")
+		self.cmd_and_return("#01BE020148\r", True, "!01")
+		self.cmd_and_return("#01BE030148\r", True, "!01")
 
 	def read_ao(self, channel):
-			cmd = "$01BC0" + str(channel) + "\r"
-			resp = SocketObj.cmd_and_return(cmd, False, "!01")
-			return resp
+		cmd = "$01BC0" + str(channel) + "\r"
+		resp = self.cmd_and_return(cmd, False, "!01")
+		return resp
 
 	def write_ao(self, channel, ao_value):
 		hex_no = hex(int(ao_value*4095/10))
@@ -40,15 +32,15 @@ class adam_setter(SocketObj):
 		if len(hex_str) == 1: hex_str = "00" + hex_str
 		if len(hex_str) == 2: hex_str = "0" + hex_str
 		cmd = "#01BC0" + str(channel) + "0" + hex_str + "\r"
-		resp = SocketObj.cmd_and_return(cmd, True, "!01")
+		resp = self.cmd_and_return(cmd, True, "!01")
 		return True
 
 	def zero_all_ao(self):
 		for i in range(4):
 			zero_str = "#01BC0" + str(i) + "0000\r"
-			resp = SocketObj.cmd_and_return(zero_str, True, "!01")
+			resp = self.cmd_and_return(zero_str, True, "!01")
 			#print resp
-		SocketObj.cmd_and_return("#01BC0200CC\r", True, "!01")
+		self.cmd_and_return("#01BC0200CC\r", True, "!01")
 		return True
 
 
@@ -101,8 +93,7 @@ def set_heater_flow(adamAO, value):
 def read_aos(adamAO):
 	ao = {}
 	for i in range(4):
-		try:
-			response = adamAO.read_ao(i)
+		response = adamAO.read_ao(i)
 		if response:
 			ao[descriptor_ao[i]]=int(response, 16)*10.0/4095
 	return ao

@@ -1,21 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 25 15:51:32 2015
-
-@author: Florian Kuchler
-"""
-
 import socket
 import cloudant
 import select
-from socketclass import *
+import socketclass
 
-class adam_reader(SocketObj):
-	def __init__(self):
-		self.status = False
-
-	def connect(self, ip, port):
-		SocketObj.__init__(self, "ADAM6015", ip, port, "udp", "\r", self.status)
+class adam_reader(socketclass.SocketObj):
+	def __init__(self, ip, port):
+		SocketObj.__init__(self, "ADAM6015", ip, port, "udp", "\r")
 
 	#dictionary for  the channel names
 	global channel_desc
@@ -32,7 +22,7 @@ class adam_reader(SocketObj):
 
 	def read_temp(self):
 		adoc_dict = {}
-		raw_temp = SocketObj.cmd_and_return("#01\r", False)
+		raw_temp = self.cmd_and_return("#01\r", False)
 		temp_list = []
 		if raw_temp == "?01":
 			raise UnexpectedReturn("No confirmation from " + self.n + "!")

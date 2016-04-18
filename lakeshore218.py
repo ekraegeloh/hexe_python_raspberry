@@ -1,34 +1,26 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 02 11:16:33 2015
-
-@author: Benedikt Krammer
-"""
-
 import socket
 import cloudant
-from socketclass import *
+import socketclass
 
-class lakeshore(SocketObj):
-    def __init__(self):
-            self.status = False
-
-    def connect(self, ip, port):
-        SocketObj.__init__(self, "Lakeshore218", ip, port, "tcp", "\r", self.status)
+class lakeshore(socketclass.SocketObj):
+    def __init__(self, ip, port):
+        socketclass.SocketObj.__init__(self, "Lakeshore218", ip, port, "tcp", "\r")
         try:
-            answer = SocketObj.cmd_and_return("*IDN? \n")
-            log("Connected to " + answer + "\n")
-        except: log("Warning: No identification received from DeltaElectronica Power Supply")
+            answer = socketclass.SocketObj.cmd_and_return(self, "*IDN? \n")
+            log("Connected to " + answer[18:] + "\n")
+        except Exception, e:
+			log("Warning: No identification received from " + self.n)
+#		    log("Reason: %s" % e)
 
     def read_values(self):
         adoc_dict={}
         l = [1, 2, 3, 4, 5, 6 ,7 ,8]
-        val = SocketObj.cmd_and_return('KRDG?\n', False)
+        val = self.cmd_and_return('KRDG?\n', False)
         val = val[1:]
         val = val.split(',+', -1)
 #        print "------------------- Lakeshore:"
         for ch in l:
-#                        print "Channel" + str(ch) + ":   " + str(val[ch-1]) + "[K]"
-                channel = 'LakeshoreCH'+ str(ch)
-                adoc_dict[channel] = val[ch-1]
+#           print "Channel" + str(ch) + ":   " + str(val[ch-1]) + "[K]"
+            channel = 'LakeshoreCH'+ str(ch)
+            adoc_dict[channel] = val[ch-1]
         return adoc_dict

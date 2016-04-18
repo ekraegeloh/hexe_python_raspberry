@@ -1,56 +1,48 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Florian Kuchler
-"""
-
 import socket
 import cloudant
 import signal
 import string
 import pynedm
-from socketclass import *
+import socketclass
 
-class delta_supply(SocketObj):
-	def __init__(self):
-		self.status = False
-
-	def connect(self, ip_address, port):
-		SocketObj.__init__(self, "DeltaElectronica Power Supply", ip_address, port, "tcp", "\n", self.status)
+class delta_supply(socketclass.SocketObj):
+	def __init__(self, ip_address, port):
+		socketclass.SocketObj.__init__(self, "DeltaElectronica Power Supply", ip_address, port)
 		try:
-			answer = SocketObj.cmd_and_return("*IDN?\n")
+			answer = socketclass.SocketObj.cmd_and_return(self, "*IDN?\n")
 			log("Connected to " + answer + "\n")
-		except: log("Warning: No identification received from DeltaElectronica Power Supply")
+		except: log("Warning: No identification received from " + self.n)
 
 	def read_voltage(self):
-		return SocketObj.cmd_and_return("MEAS:VOLT?\n", False)
+		return self.cmd_and_return("MEAS:VOLT?\n", False)
 
 	def read_current(self):
-		return SocketObj.cmd_and_return("MEAS:CURR?\n", False)
+		return self.cmd_and_return("MEAS:CURR?\n", False)
 
 	def set_max_voltage(self, max_voltage):
-		SocketObj.cmd_and_return("SOUR:VOLT:MAX " + str(max_voltage) +"\n")
+		self.cmd_and_return("SOUR:VOLT:MAX " + str(max_voltage) +"\n", True, "", False)
 
 	def read_max_voltage(self):
-		return SocketObj.cmd_and_return("SOUR:VOLT:MAX?\n", False)
+		return self.cmd_and_return("SOUR:VOLT:MAX?\n", False)
 
 	def read_max_current(self):
-		return SocketObj.cmd_and_return("SOUR:CURR:MAX?\n", False)
+		return self.cmd_and_return("SOUR:CURR:MAX?\n", False)
 
 	def set_max_current(self, max_current):
-		SocketObj.cmd_and_return("SOUR:MAX:CURR " + str(max_current) + "\n")
+		self.cmd_and_return("SOUR:MAX:CURR " + str(max_current) + "\n", True, "", False)
 
 	def set_voltage(self, voltage):
-		SocketObj.cmd_and_return("SOUR:VOLT " + str(voltage) + "\n")
+		self.cmd_and_return("SOUR:VOLT " + str(voltage) + "\n", True, "", False)
 
 	def set_current(self, current):
-		SocketObj.cmd_and_return("SOUR:CURR " + str(current) + "\n")
+		self.cmd_and_return("SOUR:CURR " + str(current) + "\n", True, "", False)
 
 	def set_output_state(self, state):
-		if int(state) == 1: SocketObj.cmd_and_return("OUTP ON \n")
-		else: SocketObj.cmd_and_return("OUTP OFF \n")
+		if int(state) == 1: self.cmd_and_return("OUTP ON \n", True, "", False)
+		else: self.cmd_and_return("OUTP OFF \n", True, "", False)
 
 	def read_output_state(self):
-		return SocketObj.cmd_and_return("OUTP?\n")
+		return self.cmd_and_return("OUTP?\n")
 
 	def init_laser(self):
 		'''
@@ -68,7 +60,7 @@ def set_laser_current(delta, current):
 	this function sets the laser current via the delta power supply
 	'''
 	delta.set_current(current)
-	return
+	return "Laser set to {}A".format(current)
 
 def set_laser_status(delta, state):
 	'''
