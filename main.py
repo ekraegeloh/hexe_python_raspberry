@@ -107,7 +107,7 @@ def main():
 		return resp
 
 	def set_mfcs(gas_flow_dict):
-		return mfc.set_massflow(mfc, gas_flow_dict)
+		return alicat_mfc.set_massflow(mfc, gas_flow_dict)
 
 	def field_switch(state):
 		webAdio_telnet.field_switch(adio, state)

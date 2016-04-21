@@ -26,18 +26,18 @@ class alicat_mfc(socketclass.SocketObj):
 		return adoc_dict
 		
 def check_flow_range(gas, flow):
-	if flow>ranges(str(gas)): raise Exception("Flow rate for {} exceeds MFC's range, abort!".format(gas))#
-	else return flow
+	if flow>ranges[str(gas)]: raise Exception("Flow rate for {} exceeds MFC's range, abort!".format(gas))#
+	else: return flow
 	
 def set_massflow(mfc, gas_flow_dict):
 	cmd_str = ""
 	return_str = ""
 	for gas in gas_flow_dict:
-		flow = check_range(gas, flow)
-		value = int(flow*64000/ranges(str(gas))
-		r = mfcs[str(gas)] + str(value) + "\r "
+		flow = check_flow_range(gas, gas_flow_dict[gas])
+		value = int(flow*64000/ranges[str(gas)])
+		r = mfcs[str(gas)] + str(value) + "\r"
 		cmd_str += r
-		return_str += "MFC for {} set to {} sccm.\n".format(gas, float(value*ranges(str(gas))/64000))
+		return_str += "MFC for {} set to {} sccm.\n".format(gas, float(value*ranges[str(gas)]/64000))
 	mfc.cmd_and_return(cmd_str) 
 	return return_str
 			
