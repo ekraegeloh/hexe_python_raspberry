@@ -84,9 +84,9 @@ def set_heater_flow(adamAO, value):
 	this function sets the analog output voltage controlling the oven heater flow
 	"""
 	ao_ch = str(descriptor_ao.index("heater_flow"))
-	output = check_aorange(float(value)/10)
+	output = check_aorange(float(value)/10.0)
 	#flow not equal to zero, otherwise the heater turns off for safety reasons
-	if float(output) < 0.5: output = "0.5"
+	if float(output) < 0.5: output = 0.5
 	if adamAO.write_ao(ao_ch, output): return "Heater flow (CH{}) set to {} V".format(ao_ch, output)
 	else: raise Exception("Error setting heater flow")
 

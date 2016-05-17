@@ -55,7 +55,7 @@ class SocketObj:
 				    break
 			except socket.error, e:
 				self.status = False
-				raise SocketDisconnect(self.n + "disconnected from socket!")
+				raise SocketDisconnect(self.n + " disconnected from socket!")
 
 
 		return astr.replace(self.tc, "")

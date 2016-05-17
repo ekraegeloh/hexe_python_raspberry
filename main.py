@@ -91,8 +91,11 @@ def main():
 	def set_laser_status(state):
 		return deltaElectronica.set_laser_status(delta, state)
 
-	def set_laser_current(current):
-		return deltaElectronica.set_laser_current(delta, current)
+#	def set_laser_current(current):
+#		return deltaElectronica.set_laser_current(delta, current)
+
+	def ramp_laser
+		return deltaElectronica.ramp_laser(delta, current)
 
 #   def set_coil_status(coil, state):   
 #       hamegHMP4040.set_coil_status(hameg, coil, state)
@@ -126,7 +129,7 @@ def main():
 	#   'set_coil_current' : hamegHMP4040.set_coil_current,
 	#   'set_ramp_time' : hamegHMP4040.set_ramp_time,
 		'enable_high_voltage' : hv_state,
-		'set_high_voltage' : set_high_voltage,
+		'set_high_voltage' : ramp_laser,
 		'set_mfcs' : set_mfcs,
 		'field_switch' : field_switch,
 		'cryo_cooler' : cryo_cooler

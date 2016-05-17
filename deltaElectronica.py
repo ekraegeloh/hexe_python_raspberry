@@ -9,6 +9,7 @@ class delta_supply(socketclass.SocketObj):
 	def __init__(self, ip_address, port):
 		socketclass.SocketObj.__init__(self, "DeltaElectronica Power Supply", ip_address, port)
 		try:
+#			socketclass.SocketObj.cmd_and_return(self, "SYST:REM REM\n")
 			answer = socketclass.SocketObj.cmd_and_return(self, "*IDN?\n")
 			log("Connected to " + answer + "\n")
 		except: log("Warning: No identification received from " + self.n)
@@ -55,12 +56,30 @@ class delta_supply(socketclass.SocketObj):
 		log("Setting voltage=8")
 		self.set_voltage(8)
 
-def set_laser_current(delta, current):
-	'''
-	this function sets the laser current via the delta power supply
-	'''
-	delta.set_current(current)
-	return "Laser set to {}A".format(current)
+	def program_ramp(self, start, stop):
+		'''
+		This function programs a ramp into the Delta Power Supply
+		'''
+		step = 0.1
+		max_step = int(abs(stop-start)/step)
+		self.cmd_and_return("PROG:SEL:STEP 1 SC=" + str(start + step) + "\n")
+		i =  1
+		for i < max_step:
+			self.cmd_and_return("PROG:SEL:STEP " + str(2*i) + " W=1\n")#0.001!
+			if stop > start:
+				self.cmd_and_return("PROG:SEL:STEP " + str(2*i + 1) + " INC SC," + str(step) + "\n")
+			else:
+				self.cmd_and_return("PROG:SEL:STEP " + str(2*i + 1) + " DEC SC," + str(step) + "\n")
+		self.cmd_and_return("PROG:SEL:STEP " + str(2*max_step) + " W=1\n")#0.001!
+		self.cmd_and_return("PROG:SEL:STEP " + str(2*max_step + 1) + " SC=" + str(stop) + "\n")
+		self.cmd_and_return("PROG:SEL:STEP " + str(2*(max_step + 1)) + " END\n")
+
+#def set_laser_current(delta, current):
+#	'''
+#	this function sets the laser current via the delta power supply
+#	'''
+#	delta.set_current(current)
+#	return "Laser set to {}A".format(current)
 
 def set_laser_status(delta, state):
 	'''
@@ -68,3 +87,24 @@ def set_laser_status(delta, state):
 	'''
 	delta.set_output_state(state)
 	return
+
+def ramp_laser(delta, current):
+	'''
+	this function ramps the laser current to the specified current (up or down)
+	'''
+	curr_curr = delta.read_current()
+	catalog = delta.cmd_and_return("PROG:CAT?\n").split()
+	log(catalog)
+	if (round(curr_curr)-curr_curr) < 0.1:
+		curr_curr = int(round(curr_curr))
+		name = "cur" + str(curr_curr) + "to" + str(current)
+			delta.cmd_and_return("PROG:SEL:NAME " + name + "\n")
+			if not name in catalog:
+				delta.program_ramp(curr_curr,current)
+				log("Programmed ramp from " + str(curr_curr) + " to " + str(current))
+	else:
+		name = "cur_temp"
+		delta.cmd_and_return("PROG:SEL:NAME " + name + "\n")
+		delta.program_ramp(curr_curr,current)
+		log("Programmed ramp from " + str(curr_curr) + " to " + str(current))
+	delta.cmd_and_return("PROG:SEL:STAT RUN\n")

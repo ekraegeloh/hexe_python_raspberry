@@ -1,18 +1,17 @@
-import socket
 import cloudant
 import select
 import socketclass
 
 class adam_reader(socketclass.SocketObj):
 	def __init__(self, ip, port):
-		SocketObj.__init__(self, "ADAM6015", ip, port, "udp", "\r")
+		socketclass.SocketObj.__init__(self, "ADAM6015", ip, port, "udp", "\r")
 
 	#dictionary for  the channel names
 	global channel_desc
 	channel_desc = {
 		"0": "oven_temp1",
 		"1": "oven_temp2",
-		"2": "CH2",
+		"2": "laser_temp",
 		"3": "CH3",
 		"4": "CH4",
 		"5": "CH5",
@@ -28,7 +27,7 @@ class adam_reader(socketclass.SocketObj):
 			raise UnexpectedReturn("No confirmation from " + self.n + "!")
 		else:
 			raw_temp=raw_temp[1:]
-			ch_number = 2
+			ch_number = 3
 			temp_chars = 7
 #       	 print '------------ ADAM6015:'
 			for i in range(ch_number):

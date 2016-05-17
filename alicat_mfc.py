@@ -6,7 +6,7 @@ global mfcs
 #identifiers for Helium, Xenon and Nitrogen MFCs
 mfcs = {"he": "H", "xe": "X", "n2": "N"}
 #max ranges of mfcs in sccm
-ranges = {"he":100, "xe":20, "n2":5}
+ranges = {"he":100.0, "xe":20.0, "n2":5.0}
 
 class alicat_mfc(socketclass.SocketObj):
 	def __init__(self, ip, port):
@@ -19,14 +19,15 @@ class alicat_mfc(socketclass.SocketObj):
 		adoc_dict = {}
 		for gas in mfcs:
 			raw_data = self.cmd_and_return(mfcs[gas] + "\r", False)
-			vals = raw_data.split()
-			for i in range(1,6):
+			if raw_data:
+				vals = raw_data.split()
+				for i in range(1,6):
 #                if i == 1: vals[i] = float(vals[i]) * 0.0689476 #convert psi to bar
-				adoc_dict["mfc_" + gas + "_" + data_format[i]] = float(vals[i])
+					adoc_dict["mfc_" + gas + "_" + data_format[i]] = float(vals[i])
 		return adoc_dict
 		
 def check_flow_range(gas, flow):
-	if flow>ranges[str(gas)]: raise Exception("Flow rate for {} exceeds MFC's range, abort!".format(gas))#
+	if float(flow)>ranges[str(gas)]: raise Exception("Flow rate for {} exceeds MFC's range, abort!".format(gas))#
 	else: return flow
 	
 def set_massflow(mfc, gas_flow_dict):

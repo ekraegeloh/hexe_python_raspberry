@@ -17,7 +17,7 @@ class expert_reader(socketclass.SocketObj):
 		"1": "hv_monitor_2",
 		"2": "hv_current_1",
 		"3": "hv_current_2",
-		"4": "CH4",
+		"4": "gas_filling_pressure",
 		"5": "CH5",
 		"6": "CH6",
 		"7": "CH7"
@@ -39,7 +39,7 @@ class expert_reader(socketclass.SocketObj):
 			raise UnexpectedReturn("No confirmation from " + self.n + "!")
 		else:
 			raw_data=raw_data[1:]
-			ch_number = 4
+			ch_number =5 
 			ai_chars = 7
 #			print '------------ ExpertDAQ: ', raw_data
 			for i in range(ch_number):
