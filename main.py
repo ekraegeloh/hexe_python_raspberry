@@ -38,7 +38,7 @@ def main():
 	lsPort = 100
 	lakesh = lakeshore218.lakeshore(lsIP, lsPort)
 
-	deltaIP = '192.168.1.70'
+	deltaIP = 'powersupply.delta18.nedm1'
 	deltaPort = 8462
 	delta = deltaElectronica.delta_supply(deltaIP, deltaPort)
 	if delta.status:        #if connected - error w/o exception, but status False possible!

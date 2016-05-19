@@ -4,13 +4,14 @@ import signal
 import string
 import pynedm
 import socketclass
+import time
 
 class delta_supply(socketclass.SocketObj):
 	def __init__(self, ip_address, port):
 		socketclass.SocketObj.__init__(self, "DeltaElectronica Power Supply", ip_address, port)
-		self.s.settimeout(2.0)
+		self.s.settimeout(0.5)
 		try:
-#			socketclass.SocketObj.cmd_and_return(self, "SYST:REM REM\n", True, "", False)
+			socketclass.SocketObj.cmd_and_return(self, "SYST:REM REM\n", True, "", False)
 			answer = socketclass.SocketObj.cmd_and_return(self, "*IDN?\n")
 			log("Connected to " + answer + "\n")
 		except: log("Warning: No identification received from " + self.n)
@@ -57,28 +58,6 @@ class delta_supply(socketclass.SocketObj):
 		log("Setting voltage=8")
 		self.set_voltage(8)
 
-	def program_ramp(self, start, stop):
-		'''
-		This function programs a ramp into the Delta Power Supply
-		'''
-		if stop > start:
-			step = 0.1
-		else:
-			step = -0.1
-		max_step = int(abs((stop-start)/step))
-		self.cmd_and_return("PROG:SEL:STEP 1 SC=" + str(start + step) + "\n", True, "", False)
-		i =  1
-		while i < max_step:
-			self.cmd_and_return("PROG:SEL:STEP " + str(2*i) + " W=1\n", True, "", False)#0.001!
-			if stop > start:
-				self.cmd_and_return("PROG:SEL:STEP " + str(2*i + 1) + " INC SC," + str(step) + "\n", True, "", False)
-			else:
-				self.cmd_and_return("PROG:SEL:STEP " + str(2*i + 1) + " DEC SC," + str(step) + "\n", True, "", False)
-			i+=1
-		self.cmd_and_return("PROG:SEL:STEP " + str(2*max_step) + " W=1\n", True, "", False)#0.001!
-		self.cmd_and_return("PROG:SEL:STEP " + str(2*max_step + 1) + " SC=" + str(stop) + "\n", True, "", False)
-		self.cmd_and_return("PROG:SEL:STEP " + str(2*(max_step + 1)) + " END\n", True, "", False)
-
 #def set_laser_current(delta, current):
 #	'''
 #	this function sets the laser current via the delta power supply
@@ -97,21 +76,18 @@ def ramp_laser(delta, current):
 	'''
 	this function ramps the laser current to the specified current (up or down)
 	'''
-	curr_curr = float(delta.read_current())
+	curr_curr = round(float(delta.read_current()), 1)
 	current = float(current)
-	catalog = delta.cmd_and_return("PROG:CAT?\n").split()
-	log(catalog)
-	if (round(curr_curr)-curr_curr) < 0.1:
-		curr_curr = round(curr_curr)
-		name = "cur" + str(curr_curr) + "to" + str(current)
-		delta.cmd_and_return("PROG:SEL:NAME " + name + "\n", True, "", False)
-		if not name in catalog:
-			delta.program_ramp(curr_curr,current)
-			log("Programmed ramp from " + str(curr_curr) + " to " + str(current))
+	if current > curr_curr:
+		step = 0.1
 	else:
-		name = "cur_temp"
-		delta.cmd_and_return("PROG:SEL:NAME " + name + "\n", True, "", False)
-		delta.program_ramp(curr_curr,current)
-		log("Programmed ramp from " + str(curr_curr) + " to " + str(current))
-	delta.cmd_and_return("PROG:SEL:STAT RUN\n", True, "", False)
-	return
+		step = -0.1
+	max_step = int(abs((current - curr_curr)/step))
+	i=1
+	delta.s.settimeout(1e-3)
+	while i <= max_step:
+		delta.set_current(curr_curr + i*step)
+		i+=1
+	delta.set_current(current)
+	delta.s.settimeout(0.5)
+	return "Laser ramped to {}A".format(current)
